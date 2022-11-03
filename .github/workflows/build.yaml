@@ -1,0 +1,36 @@
+name: Package addon
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+      - '!**-classic'
+    paths-ignore:
+      - '.github/**'
+      - 'ldoc.ltp'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout addon
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Run luacheck
+        uses: BigWigsMods/actions/luacheck@master
+        with:
+          args: -q
+
+      - name: Update option files
+        if: always()
+        run: lua gen_option_values.lua BigWigs.toc
+
+      - name: Package
+        uses: BigWigsMods/packager@master
+        env:
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
